@@ -10,9 +10,13 @@ int main() {
     std::cout << "$ ";
     std::string cmd;
     std::getline(std::cin, cmd);
-
-    if (cmd == "exit") {
+    int cmd_sep = cmd.find(' ');
+    std::string cmd_name = cmd.substr(0, cmd_sep);
+    std::string cmd_args = cmd.substr(cmd_sep + 1);
+    if (cmd_name == "exit") {
       break;
+    } else if (cmd_name == "echo") {
+      std::cout << cmd_args << std::endl;
     } else {
       std::cout << cmd << ": command not found" << std::endl;
     }
