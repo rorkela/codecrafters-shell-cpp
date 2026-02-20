@@ -9,6 +9,6 @@ int main() {
   // TODO: Uncomment the code below to pass the first stage
   std::cout << "$ ";
   std::string cmd_name;
-  std::cin >> cmd_name;
-  std::cout<< cmd_name <<": command not found";
+  std::getline(std::cin, cmd_name);
+  std::cout<< cmd_name <<": command not found"<<std::endl;
 }
