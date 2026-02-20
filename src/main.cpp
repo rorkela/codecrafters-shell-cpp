@@ -6,10 +6,15 @@ int main() {
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
 
-  while(1){
-  std::cout << "$ ";
-  std::string cmd_name;
-  std::getline(std::cin, cmd_name);
-  std::cout<< cmd_name <<": command not found"<<std::endl;
+  while (1) {
+    std::cout << "$ ";
+    std::string cmd;
+    std::getline(std::cin, cmd);
+
+    if (cmd == "exit") {
+      break;
+    } else {
+      std::cout << cmd << ": command not found" << std::endl;
+    }
   }
 }
