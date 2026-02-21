@@ -14,22 +14,21 @@ std::string find_executable(const std::string &cmd, const std::vector<std::strin
 
 extern char **environ;
 
-
-void run_exec(const std::string &full_path, const std::string &cmd) {
+// TODO: args and argv are ambigious for now. FIx LATER
+void run_exec(const std::vector<std::string> & args, const std::vector<std::string> &path_dirs) {
   pid_t pid;
-  std::vector<std::string> args=split(cmd, ' ');
   std::vector<char*> argv;
-    for (auto &arg : args) {
+    for (auto arg : args) {
         argv.push_back(arg.data());
     }
     argv.push_back(nullptr); // Null-terminate the arguments
-  if (posix_spawn(&pid,
-                     full_path.c_str(),
+  if (posix_spawnp(&pid,
+                     args[0].c_str(),
                      nullptr,
                      nullptr,
                      argv.data(),
                      environ) != 0) {
-        perror("posix_spawnp failed");
+        std::cout << args[0] << ": command not found" << std::endl;
         return;
     }
 

@@ -5,13 +5,13 @@ enum class token_state {
   DOUBLE_Q,
   Q,
 };
-std::vector<std::string> tokenize(const std::string_view args) {
+std::vector<std::string> tokenize(const std::string_view cmd) {
   std::vector<std::string> tokens;
   std::string current_token;
   token_state state = token_state::NORMAL;
   current_token = "";
   bool is_escape = false;
-  for (char c : args) {
+  for (char c : cmd) {
     switch (state) {
     case token_state::NORMAL: {
       if (is_escape) {
