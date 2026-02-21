@@ -1,10 +1,10 @@
+#include <bits/stdc++.h>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <unistd.h>
-#include <fstream>
-#include <filesystem>
-#include <bits/stdc++.h>
-enum class Builtin { EXIT, ECHO, TYPE , PWD};
+enum class Builtin { EXIT, ECHO, TYPE, PWD, CD };
 #include "helper.h"
 int main() {
   // Flush after every std::cout / std:cerr
@@ -23,7 +23,8 @@ int main() {
   std::unordered_map<std::string, Builtin> builtins = {{"exit", Builtin::EXIT},
                                                        {"echo", Builtin::ECHO},
                                                        {"type", Builtin::TYPE},
-                                                       {"pwd", Builtin::PWD}};
+                                                       {"pwd", Builtin::PWD},
+                                                       {"cd", Builtin::CD}};
 
   while (1) {
     std::cout << "$ ";
@@ -43,13 +44,15 @@ int main() {
     auto it = builtins.find(cmd_name);
     if (it != builtins.end()) {
       switch (it->second) {
-      case Builtin::EXIT:
+      case Builtin::EXIT: {
         return 0;
         break;
-      case Builtin::ECHO:
+      }
+      case Builtin::ECHO: {
         std::cout << cmd_args << std::endl;
         break;
-      case Builtin::TYPE:
+      }
+      case Builtin::TYPE: {
         if (builtins.find(cmd_args) != builtins.end()) {
           // If Builtin
           std::cout << cmd_args << " is a shell builtin" << std::endl;
@@ -62,12 +65,20 @@ int main() {
             std::cout << cmd_args << " is " << full_path << std::endl;
           }
         }
-        break;
-        case Builtin::PWD:
-        char * cwd = getcwd(nullptr, 0);
+      } break;
+      case Builtin::PWD: {
+        char *cwd = getcwd(nullptr, 0);
         std::cout << cwd << std::endl;
         free(cwd);
         break;
+      }
+      case Builtin::CD: {
+        if (chdir(cmd_args.c_str()) != 0) {
+          std::cout << "cd: " << cmd_args << ": No such file or directory"
+                    << std::endl;
+        }
+        break;
+      }
       }
     } else {
       std::string full_path = find_executable(cmd_name, path_dirs);
@@ -75,8 +86,7 @@ int main() {
         std::cout << cmd_name << ": command not found" << std::endl;
       } else {
         run_exec(full_path, cmd);
+      }
     }
   }
-}
-
 }
