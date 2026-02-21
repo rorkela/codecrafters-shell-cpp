@@ -15,17 +15,16 @@ std::string find_executable(const std::string &cmd, const std::vector<std::strin
 extern char **environ;
 
 
-void run_exec(const std::string &full_path, const std::string &cmd_args) {
+void run_exec(const std::string &full_path, const std::string &cmd) {
   pid_t pid;
-  std::vector<std::string> args=split(cmd_args, ' ');
-  args.insert(args.begin(), full_path); // Insert the command at the beginning
+  std::vector<std::string> args=split(cmd, ' ');
   std::vector<char*> argv;
     for (auto &arg : args) {
         argv.push_back(arg.data());
     }
     argv.push_back(nullptr); // Null-terminate the arguments
   if (posix_spawn(&pid,
-                     args[0].c_str(),
+                     full_path.c_str(),
                      nullptr,
                      nullptr,
                      argv.data(),
@@ -38,7 +37,7 @@ void run_exec(const std::string &full_path, const std::string &cmd_args) {
 }
 
 
-//TODO: Implement multiple spaces in cmd_args
+//TODO: Implement multiple spaces in cmd_arg
 std::vector<std::string> split(const std::string& s, char delim) {
     std::vector<std::string> tokens;
     size_t start = 0, end;

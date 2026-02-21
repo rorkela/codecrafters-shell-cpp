@@ -70,7 +70,7 @@ int main() {
       if (full_path.empty()) {
         std::cout << cmd_name << ": command not found" << std::endl;
       } else {
-        run_exec(full_path, cmd_args);
+        run_exec(full_path, cmd);
     }
   }
 }
