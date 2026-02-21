@@ -96,11 +96,12 @@ int main() {
             std::cout << cmd_name << ": " << file
                       << ": No such file or directory" << std::endl;
           } else {
-            std::string strInput{};
-            while (inf >> strInput)
-              std::cout << strInput << '\n';
+            char ch;
+            while (inf.get(ch))
+              std::cout<<ch;
           }
         }
+        std::cout<<std::endl;
         break;
       }
       }
