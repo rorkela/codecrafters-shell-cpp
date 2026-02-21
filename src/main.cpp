@@ -101,7 +101,7 @@ int main() {
               std::cout<<ch;
           }
         }
-        std::cout<<std::endl;
+        //std::cout<<std::endl;
         break;
       }
       }
