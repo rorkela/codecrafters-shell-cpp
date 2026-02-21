@@ -3,6 +3,6 @@
 
 #include <bits/stdc++.h>
 
-std::vector<std::string> tokenize(const std::string args);
+std::vector<std::string> tokenize(std::string_view args);
 
 #endif

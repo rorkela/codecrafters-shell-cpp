@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <unistd.h>
-enum class Builtin { EXIT, ECHO, TYPE, PWD, CD };
+enum class Builtin { EXIT, ECHO, TYPE, PWD, CD, CAT };
 #include "helper.h"
 #include "tokenize.h"
 int main() {
@@ -21,11 +21,9 @@ int main() {
     end = path_env.find(':', start);
   }
   path_dirs.push_back(path_env.substr(start)); // Add the last directory
-  std::unordered_map<std::string, Builtin> builtins = {{"exit", Builtin::EXIT},
-                                                       {"echo", Builtin::ECHO},
-                                                       {"type", Builtin::TYPE},
-                                                       {"pwd", Builtin::PWD},
-                                                       {"cd", Builtin::CD}};
+  std::unordered_map<std::string, Builtin> builtins = {
+      {"exit", Builtin::EXIT}, {"echo", Builtin::ECHO}, {"type", Builtin::TYPE},
+      {"pwd", Builtin::PWD},   {"cd", Builtin::CD},     {"cat", Builtin::CAT}};
 
   while (1) {
     std::cout << "$ ";
@@ -41,7 +39,7 @@ int main() {
       cmd_name = cmd.substr(0, cmd_sep);
       cmd_args = cmd.substr(cmd_sep + 1);
     }
-    std::vector<std::string> args=tokenize(cmd_args);
+    std::vector<std::string> args = tokenize(cmd_args);
     // Builtin Command
     auto it = builtins.find(cmd_name);
     if (it != builtins.end()) {
@@ -51,11 +49,12 @@ int main() {
         break;
       }
       case Builtin::ECHO: {
-        for (int i = 0; i < args.size(); i++){
-          if(i!=0)  std::cout<<" ";
-          std::cout<<args[i];
+        for (int i = 0; i < args.size(); i++) {
+          if (i != 0)
+            std::cout << " ";
+          std::cout << args[i];
         }
-        std::cout <<std::endl;
+        std::cout << std::endl;
         break;
       }
       case Builtin::TYPE: {
@@ -79,13 +78,28 @@ int main() {
         break;
       }
       case Builtin::CD: {
-        if(cmd_args[0] == '~') {
+        if (cmd_args[0] == '~') {
           std::string home_dir = std::getenv("HOME");
           cmd_args.replace(0, 1, home_dir);
         }
         if (chdir(cmd_args.c_str()) != 0) {
           std::cout << "cd: " << cmd_args << ": No such file or directory"
                     << std::endl;
+        }
+        break;
+      }
+      case Builtin::CAT: {
+        for (auto file : args) {
+          std::ifstream inf{file};
+          if (!inf) {
+            // Print an error and exit
+            std::cout << cmd_name << ": " << file
+                      << ": No such file or directory" << std::endl;
+          } else {
+            std::string strInput{};
+            while (inf >> strInput)
+              std::cout << strInput << '\n';
+          }
         }
         break;
       }
