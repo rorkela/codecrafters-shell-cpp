@@ -5,7 +5,9 @@
 #include <fstream>
 #include <unordered_map>
 #include <vector>
+
 enum class Builtin { EXIT, ECHO, TYPE };
+#include "helper.h"
 int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
@@ -54,24 +56,22 @@ int main() {
           std::cout << cmd_args << " is a shell builtin" << std::endl;
         } else {
           // Search in PATH
-          bool found = false;
-          for (const auto &dir : path_dirs) {
-            std::string full_path = dir + "/" + cmd_args;
-            //Check if exists
-            if (std::ifstream(full_path).good() && ! access(full_path.c_str(), X_OK)) {
-              std::cout << cmd_args << " is " << full_path << std::endl;
-              found = true;
-              break;
-            }
-          }
-          if (!found) {
+          std::string full_path = find_executable(cmd_args, path_dirs);
+          if (full_path.empty()) {
             std::cout << cmd_args << ": not found" << std::endl;
+          } else {
+            std::cout << cmd_args << " is " << full_path << std::endl;
           }
         }
         break;
       }
     } else {
-      std::cout << cmd << ": command not found" << std::endl;
+      std::string full_path = find_executable(cmd_name, path_dirs);
+      if (full_path.empty()) {
+        std::cout << cmd_name << ": command not found" << std::endl;
+      } else {
+        run_exec(full_path, cmd_args);
     }
   }
 }
+
