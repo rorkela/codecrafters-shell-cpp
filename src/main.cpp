@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
+#include <fstream>
 #include <unordered_map>
 #include <vector>
 enum class Builtin { EXIT, ECHO, TYPE };
