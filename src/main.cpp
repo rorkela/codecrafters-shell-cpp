@@ -23,7 +23,7 @@ int main() {
   path_dirs.push_back(path_env.substr(start)); // Add the last directory
   std::unordered_map<std::string, Builtin> builtins = {
       {"exit", Builtin::EXIT}, {"echo", Builtin::ECHO}, {"type", Builtin::TYPE},
-      {"pwd", Builtin::PWD},   {"cd", Builtin::CD},     {"cat", Builtin::CAT}};
+      {"pwd", Builtin::PWD},   {"cd", Builtin::CD},     };
 
   while (1) {
     std::cout << "$ ";
