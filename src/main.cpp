@@ -6,6 +6,7 @@
 #include <unistd.h>
 enum class Builtin { EXIT, ECHO, TYPE, PWD, CD };
 #include "helper.h"
+#include "tokenize.h"
 int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
@@ -40,6 +41,7 @@ int main() {
       cmd_name = cmd.substr(0, cmd_sep);
       cmd_args = cmd.substr(cmd_sep + 1);
     }
+    std::vector<std::string> args=tokenize(cmd_args);
     // Builtin Command
     auto it = builtins.find(cmd_name);
     if (it != builtins.end()) {
@@ -49,7 +51,11 @@ int main() {
         break;
       }
       case Builtin::ECHO: {
-        std::cout << cmd_args << std::endl;
+        for (int i = 0; i < args.size(); i++){
+          if(i!=0)  std::cout<<" ";
+          std::cout<<args[i];
+        }
+        std::cout <<std::endl;
         break;
       }
       case Builtin::TYPE: {
