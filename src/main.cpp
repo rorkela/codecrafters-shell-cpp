@@ -73,6 +73,10 @@ int main() {
         break;
       }
       case Builtin::CD: {
+        if(cmd_args[0] == '~') {
+          std::string home_dir = std::getenv("HOME");
+          cmd_args.replace(0, 1, home_dir);
+        }
         if (chdir(cmd_args.c_str()) != 0) {
           std::cout << "cd: " << cmd_args << ": No such file or directory"
                     << std::endl;
