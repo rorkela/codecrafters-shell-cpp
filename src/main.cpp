@@ -1,12 +1,10 @@
 #include <cstdlib>
 #include <iostream>
-#include <string>
 #include <unistd.h>
 #include <fstream>
-#include <unordered_map>
-#include <vector>
-
-enum class Builtin { EXIT, ECHO, TYPE };
+#include <filesystem>
+#include <bits/stdc++.h>
+enum class Builtin { EXIT, ECHO, TYPE , PWD};
 #include "helper.h"
 int main() {
   // Flush after every std::cout / std:cerr
@@ -24,7 +22,8 @@ int main() {
   path_dirs.push_back(path_env.substr(start)); // Add the last directory
   std::unordered_map<std::string, Builtin> builtins = {{"exit", Builtin::EXIT},
                                                        {"echo", Builtin::ECHO},
-                                                       {"type", Builtin::TYPE}};
+                                                       {"type", Builtin::TYPE},
+                                                       {"pwd", Builtin::PWD}};
 
   while (1) {
     std::cout << "$ ";
@@ -63,6 +62,11 @@ int main() {
             std::cout << cmd_args << " is " << full_path << std::endl;
           }
         }
+        break;
+        case Builtin::PWD:
+        char * cwd = getcwd(nullptr, 0);
+        std::cout << cwd << std::endl;
+        free(cwd);
         break;
       }
     } else {
