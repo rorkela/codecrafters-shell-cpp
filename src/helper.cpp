@@ -15,11 +15,11 @@ std::string find_executable(const std::string &cmd, const std::vector<std::strin
 extern char **environ;
 
 // TODO: args and argv are ambigious for now. FIx LATER
-void run_exec(const std::vector<std::string> & args, const std::vector<std::string> &path_dirs) {
+void run_exec(const std::vector<std::string> & args) {
   pid_t pid;
   std::vector<char*> argv;
-    for (auto arg : args) {
-        argv.push_back(arg.data());
+    for (const std::string& arg : args) {
+        argv.push_back(const_cast<char*>(arg.c_str()));
     }
     argv.push_back(nullptr); // Null-terminate the arguments
   if (posix_spawnp(&pid,

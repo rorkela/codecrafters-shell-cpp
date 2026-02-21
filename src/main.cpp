@@ -80,7 +80,7 @@ int main() {
       }
       }
     } else {
-      run_exec(argv,path_dirs);
+      run_exec(argv);
       /*std::string full_path = find_executable(argv[0], path_dirs);
       if (full_path.empty()) {
         std::cout << argv[0] << ": command not found" << std::endl;
