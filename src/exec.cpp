@@ -25,6 +25,11 @@ void exec_full(std::vector<Token> tokens) {
       }
       i++;
     }
+    //token is pipe
+    else{
+      pipeline.push_back(current_command);
+      current_command={{}, "", "", "", "", ""};
+    }
   }
   pipeline.push_back(current_command);
 

@@ -2,7 +2,7 @@ Built as a part of Codecrafter's Build Your Own Shell Challenge.
 Supports
 - `cd` `pwd` `echo` `type` `exit`
 - Program execution from path
-
+- redirection
 Not implemented yet
 - pipes
 - autocomplete
