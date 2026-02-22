@@ -1,51 +1,31 @@
 #include "helper.h"
-std::string find_executable(const std::string &cmd, const std::vector<std::string> &path_dirs) {
+std::string find_executable(const std::string &cmd,
+                            const std::vector<std::string> &path_dirs) {
   for (const auto &dir : path_dirs) {
     std::string full_path = dir + "/" + cmd;
-    if (! access(full_path.c_str(), X_OK)) {
+    if (!access(full_path.c_str(), X_OK)) {
       return full_path;
     }
   }
   return "";
 }
 
-//Run_exec function using posix_spawn
-
+// Run_exec function using posix_spawn
 
 extern char **environ;
 
 // TODO: args and argv are ambigious for now. FIx LATER
-void run_exec(const std::vector<std::string> & args) {
-  pid_t pid;
-  std::vector<char*> argv;
-    for (const std::string& arg : args) {
-        argv.push_back(const_cast<char*>(arg.c_str()));
-    }
-    argv.push_back(nullptr); // Null-terminate the arguments
-  if (posix_spawnp(&pid,
-                     args[0].c_str(),
-                     nullptr,
-                     nullptr,
-                     argv.data(),
-                     environ) != 0) {
-        std::cout << args[0] << ": command not found" << std::endl;
-        return;
-    }
 
-    waitpid(pid, nullptr, 0);
-}
+// TODO: Implement multiple spaces in cmd_arg
+std::vector<std::string> split(const std::string &s, char delim) {
+  std::vector<std::string> tokens;
+  size_t start = 0, end;
 
+  while ((end = s.find(delim, start)) != std::string::npos) {
+    tokens.emplace_back(s.substr(start, end - start));
+    start = end + 1;
+  }
 
-//TODO: Implement multiple spaces in cmd_arg
-std::vector<std::string> split(const std::string& s, char delim) {
-    std::vector<std::string> tokens;
-    size_t start = 0, end;
-
-    while ((end = s.find(delim, start)) != std::string::npos) {
-        tokens.emplace_back(s.substr(start, end - start));
-        start = end + 1;
-    }
-
-    tokens.emplace_back(s.substr(start));
-    return tokens;
+  tokens.emplace_back(s.substr(start));
+  return tokens;
 }

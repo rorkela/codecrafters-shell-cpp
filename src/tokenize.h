@@ -2,7 +2,10 @@
 #define TOKENIZE
 
 #include <bits/stdc++.h>
-
-std::vector<std::string> tokenize(std::string_view cmd);
+struct Token {
+  std::string text;
+  bool is_op;
+};
+std::vector<Token> tokenize(std::string_view cmd);
 
 #endif
