@@ -1,3 +1,13 @@
+Built as a part of Codecrafter's Build Your Own Shell Challenge.
+Supports
+- `cd` `pwd` `echo` `type` `exit`
+- Program execution from path
+
+Not implemented yet
+- pipes
+- autocomplete
+- history
+
 [![progress-banner](https://backend.codecrafters.io/progress/shell/ecc58f75-b0e4-4471-8dd9-d3e57f43cf60)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
 
 ["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview).
