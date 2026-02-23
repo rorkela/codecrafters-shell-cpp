@@ -2,7 +2,9 @@
 #include "helper.h"
 extern std::vector<std::string> path_dirs;
 
+std::vector <pid_t> pids;
 void exec_full(std::vector<Token> tokens) {
+  pids.clear();
   std::vector<Token> argv = tokens;
   std::vector<Cmd> pipeline;
   Cmd current_command = {{}, "", "", "", "", ""};
@@ -25,54 +27,129 @@ void exec_full(std::vector<Token> tokens) {
       }
       i++;
     }
-    //token is pipe
-    else{
+    // token is pipe
+    else {
       pipeline.push_back(current_command);
-      current_command={{}, "", "", "", "", ""};
+      current_command = {{}, "", "", "", "", ""};
     }
   }
   pipeline.push_back(current_command);
+  int pipefd[2];
 
+  // Piping
+  pipeline[0].ispipein=false;
+    pipeline[pipeline.size()-1].ispipeout=false;
   for (int i = 0; i < pipeline.size(); i++) {
-    run_cmd(pipeline[i]);
+  if (pipeline.size() == 1) {
+      pipeline[i].ispipein = false;
+      pipeline[i].ispipeout = false;
+    } else {
+      if (i !=pipeline.size()-1) {
+        pipe(pipefd);
+        pipeline[i + 1].pipein = pipefd[0];
+        pipeline[i].pipeout = pipefd[1];
+        pipeline[i+1].ispipein=true;
+        pipeline[i].ispipeout=true;
+      }
+    }
+  }
+  for (int i = 0; i < pipeline.size(); i++) {
+    Cmd &cmd = pipeline[i];
+
+    // Execution handling
+    auto it = builtins.find(cmd.argv[0]);
+    if (it != builtins.end()) {
+      cmd.cmd_type = it->second;
+    } else {
+      cmd.cmd_type = Builtin::NOT_BUILTIN;
+    }
+    if (cmd.cmd_type == Builtin::NOT_BUILTIN || pipeline.size() != 1) {
+      cmd.fork = 1;
+    }
+    // Redirection
+    exec_cmd(cmd);
+  }
+  for(pid_t p:pids){
+    waitpid(p, nullptr, 0);
+  }
+  
+}
+
+void exec_cmd(const Cmd &cmd) {
+  pid_t pid = 1;
+  if (cmd.fork) {
+    pid = fork();
+  }
+  // If its in parent and not forked. or its in child and forked
+  if ((pid > 0 && cmd.fork == false) || (pid == 0 && cmd.fork == true)) {
+    // Redirection
+
+    run_cmd(cmd);
+
+    if (cmd.fork == true) {
+      _exit(0);
+    }
+  }
+  if (pid < 0 && cmd.fork == true) {
+    std::cerr << "Fork Fail" << std::endl;
+  }
+  // if in parent when forked.
+  else if (pid > 0 && cmd.fork == true) {
+    if (cmd.ispipein)
+        close(cmd.pipein);
+
+    if (cmd.ispipeout)
+        close(cmd.pipeout);
+    pids.push_back(pid);
+  }
+}
+
+void redirect(const Cmd &cmd) {
+
+  // pipeline redirection
+  if (cmd.ispipein) {
+    dup2(cmd.pipein, STDIN_FILENO);
+    close(cmd.pipein);
+  }
+  if (cmd.ispipeout){
+    dup2(cmd.pipeout, STDOUT_FILENO);
+    close(cmd.pipeout);
+  }
+  if (!cmd.out_write.empty()) {
+    int fd = open(cmd.out_write.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    dup2(fd, STDOUT_FILENO);
+    close(fd);
+  } else if (!cmd.out_append.empty()) {
+    int fd = open(cmd.out_append.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+    dup2(fd, STDOUT_FILENO);
+    close(fd);
+  }
+  if (!cmd.err_write.empty()) {
+    int fd = open(cmd.err_write.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    dup2(fd, STDERR_FILENO);
+    close(fd);
+  } else if (!cmd.err_append.empty()) {
+    int fd = open(cmd.err_append.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+    dup2(fd, STDERR_FILENO);
+    close(fd);
   }
 }
 
 void run_cmd(const Cmd &cmd) {
   std::vector<std::string> argv = cmd.argv;
-  //If no input
+  int saved_stdout = dup(STDOUT_FILENO);
+  int saved_stderr = dup(STDERR_FILENO);
+  int saved_stdin = dup(STDIN_FILENO);
+  redirect(cmd);
+  // If no input
   if (argv.empty())
     return;
+
   // Builtin Command
-  auto it = builtins.find(argv[0]);
-  if (it != builtins.end()) {
 
-    // Redirection
-    int saved_stdout = dup(STDOUT_FILENO);
-    int saved_stderr = dup(STDERR_FILENO);
-    int saved_stdin = dup(STDIN_FILENO);
+  if (cmd.cmd_type != Builtin::NOT_BUILTIN) {
 
-    if (!cmd.out_write.empty()) {
-      int fd = open(cmd.out_write.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-      dup2(fd, STDOUT_FILENO);
-      close(fd);
-    } else if (!cmd.out_append.empty()) {
-      int fd =
-          open(cmd.out_append.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
-      dup2(fd, STDOUT_FILENO);
-      close(fd);
-    }
-    if (!cmd.err_write.empty()) {
-      int fd = open(cmd.err_write.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-      dup2(fd, STDERR_FILENO);
-      close(fd);
-    } else if (!cmd.err_append.empty()) {
-      int fd =
-          open(cmd.err_append.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
-      dup2(fd, STDERR_FILENO);
-      close(fd);
-    }
-    switch (it->second) {
+    switch (cmd.cmd_type) {
     case Builtin::EXIT: {
       std::exit(0);
       break;
@@ -122,54 +199,27 @@ void run_cmd(const Cmd &cmd) {
       break;
     }
     }
-    // Redirection Close
-    dup2(saved_stdout, STDOUT_FILENO);
-    close(saved_stdout);
-    dup2(saved_stderr, STDERR_FILENO);
-    close(saved_stderr);
-    dup2(saved_stdin, STDIN_FILENO);
-    close(saved_stdin);
+
   } else {
-    // Redirection setup
-    posix_spawn_file_actions_t actions;
-    posix_spawn_file_actions_init(&actions);
-    if (!cmd.out_write.empty()) {
-      posix_spawn_file_actions_addopen(&actions, STDOUT_FILENO,
-                                       cmd.out_write.c_str(),
-                                       O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    } else if (!cmd.out_append.empty()) {
-      posix_spawn_file_actions_addopen(&actions, STDOUT_FILENO,
-                                       cmd.out_append.c_str(),
-                                       O_WRONLY | O_CREAT | O_APPEND, 0644);
-    }
-    if (!cmd.err_write.empty()) {
-    posix_spawn_file_actions_addopen(&actions,
-                                     STDERR_FILENO,
-                                     cmd.err_write.c_str(),
-                                     O_WRONLY | O_CREAT | O_TRUNC,
-                                     0644);
-}
-else if (!cmd.err_append.empty()) {
-    posix_spawn_file_actions_addopen(&actions,
-                                     STDERR_FILENO,
-                                     cmd.err_append.c_str(),
-                                     O_WRONLY | O_CREAT | O_APPEND,
-                                     0644);
-}
-    pid_t pid;
+
     std::vector<std::string> args = cmd.argv;
     std::vector<char *> c_argv;
     for (const std::string &arg : args) {
       c_argv.push_back(const_cast<char *>(arg.c_str()));
     }
     c_argv.push_back(nullptr); // Null-terminate the arguments
-    if (posix_spawnp(&pid, args[0].c_str(), &actions, nullptr, c_argv.data(),
-                     environ) != 0) {
-      std::cerr << args[0] << ": command not found" << std::endl;
-      return;
-    }
 
-    waitpid(pid, nullptr, 0);
-    posix_spawn_file_actions_destroy(&actions);
+    execvp(c_argv[0], c_argv.data());
+    std::cerr << c_argv[0] << ": command not found" << std::endl;
+    std::exit(0);
+  }
+  // Redirection Close
+  if (cmd.fork == false) {
+    dup2(saved_stdout, STDOUT_FILENO);
+    close(saved_stdout);
+    dup2(saved_stderr, STDERR_FILENO);
+    close(saved_stderr);
+    dup2(saved_stdin, STDIN_FILENO);
+    close(saved_stdin);
   }
 }

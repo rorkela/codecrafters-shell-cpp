@@ -35,18 +35,18 @@ std::vector<Token> tokenize(const std::string_view cmd) {
           state = token_state::Q;
         } else if (c == '\"') {
           state = token_state::DOUBLE_Q;
-        } else if (c == '|'){
+        } else if (c == '|') {
           if (!current_token.text.empty()) {
-              tokens.emplace_back(current_token);
-              current_token.text = "";
-              current_token.is_op = false;
-            }
-            current_token.text = "|";
-            current_token.is_op = true;
             tokens.emplace_back(current_token);
             current_token.text = "";
             current_token.is_op = false;
-        }else{
+          }
+          current_token.text = "|";
+          current_token.is_op = true;
+          tokens.emplace_back(current_token);
+          current_token.text = "";
+          current_token.is_op = false;
+        } else {
           // Operator check and token insertion
           int op_size = 0; // if stays 0, no op detected
           std::string mask1 = std::string(cmd.substr(i, 1));
