@@ -1,9 +1,0 @@
-build
-CMakeLists.txt
-codecrafters.yml
-mog
-README.md
-src
-vcpkg-configuration.json
-vcpkg.json
-your_program.sh

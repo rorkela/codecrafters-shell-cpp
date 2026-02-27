@@ -57,6 +57,7 @@ void exec_full(std::vector<Token> tokens) {
     Cmd &cmd = pipeline[i];
 
     // Execution handling
+    if(cmd.argv.size()){
     auto it = builtins.find(cmd.argv[0]);
     if (it != builtins.end()) {
       cmd.cmd_type = it->second;
@@ -68,6 +69,8 @@ void exec_full(std::vector<Token> tokens) {
     }
     // Redirection
     exec_cmd(cmd);
+    }
+    
   }
   for(pid_t p:pids){
     waitpid(p, nullptr, 0);
